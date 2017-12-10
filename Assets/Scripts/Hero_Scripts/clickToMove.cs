@@ -3,52 +3,46 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class clickToMove : MonoBehaviour {
+public class clickToMove : MonoBehaviour
+{
 
-    private Animator mAnimator;
+    private Animator _mAnimator;
+    private NavMeshAgent _mNavMeshAgent;
 
-    private NavMeshAgent mNavMeshAgent;
+    private DrawHeroNavPath _heroNavPath;
 
-    private bool mRunning = false;
+    // Use this for initialization
+    void Start()
+    {
+        _mAnimator = GetComponent<Animator>();
+        _mNavMeshAgent = GetComponent<NavMeshAgent>();
 
-	// Use this for initialization
-	void Start () {
+        _heroNavPath = GetComponent<DrawHeroNavPath>();
+    }
 
-        mAnimator = GetComponent<Animator>();
-        mNavMeshAgent = GetComponent<NavMeshAgent>();
-
-	}
-	
-	// Update is called once per frame
-	void Update () {
-
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        RaycastHit hit;
-
-        if (Input.GetMouseButtonDown(1))
+    // Update is called once per frame
+    void Update()
+    {
+        if (_mNavMeshAgent.remainingDistance <= _mNavMeshAgent.stoppingDistance)
         {
-            if (mNavMeshAgent.velocity == Vector3.zero)
-            {
-                mRunning = false;
-            }
+            _mAnimator.StopPlayback();
+            _mAnimator.SetBool("Running", false);
+        }
+
+        if (Input.GetMouseButton(1))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit, 100))
             {
-                mNavMeshAgent.destination = hit.point;
-            }
+                _mNavMeshAgent.destination = hit.point;
+                _mAnimator.SetBool("Running", true);
+                _mAnimator.SetBool("Attacking", false);
 
-            if(mNavMeshAgent.remainingDistance <= mNavMeshAgent.stoppingDistance)
-            {
-                mRunning = false;
-            }
-
-            else
-            {
-                mRunning = true;
+                _heroNavPath.SpawnDots();
             }
         }
-
-        mAnimator.SetBool("Running", mRunning);
-	}
+    }
 }
